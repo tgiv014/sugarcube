@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"log"
 	"os"
 
@@ -18,11 +19,12 @@ func getEnv() app.Environment {
 }
 
 func main() {
+	ctx := context.Background()
 	a := app.New(app.Config{
 		Environment: getEnv(),
 	})
 
-	err := a.Run()
+	err := a.Run(ctx)
 	if err != nil {
 		log.Fatal(err)
 	}
