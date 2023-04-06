@@ -2,7 +2,6 @@ package session
 
 import (
 	"errors"
-	"fmt"
 	"net/http"
 	"time"
 
@@ -62,7 +61,6 @@ func (s *Service) Login(password string) (*Session, error) {
 func (s *Service) Authenticate(c *gin.Context) {
 	token, err := c.Cookie("token")
 	if err != nil {
-		fmt.Println(err)
 		c.AbortWithStatus(http.StatusUnauthorized)
 		return
 	}
@@ -78,9 +76,7 @@ func (s *Service) Authenticate(c *gin.Context) {
 		return
 	}
 	if session.Expires.Before(time.Now()) {
-		fmt.Println("expired")
 		c.AbortWithStatus(http.StatusUnauthorized)
 		return
 	}
-	fmt.Printf("Valid session: %#v\n", session)
 }

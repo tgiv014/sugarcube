@@ -1,9 +1,10 @@
 package app
 
 import (
-	"log"
 	"net/http"
 	"strings"
+
+	"github.com/charmbracelet/log"
 
 	"github.com/gin-gonic/gin"
 	"github.com/tgiv014/sugarcube/web"
@@ -15,7 +16,9 @@ func (a *App) runProd() error {
 		log.Fatal(err)
 	}
 
-	r := gin.Default()
+	r := gin.New()
+	r.Use(gin.Recovery())
+	r.Use(logger)
 	r.Use(static)
 	a.attachRoutes(r)
 	r.NoRoute(func(c *gin.Context) {

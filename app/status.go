@@ -1,7 +1,6 @@
 package app
 
 import (
-	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -20,7 +19,6 @@ func (a *App) status(c *gin.Context) {
 		return
 	}
 
-	fmt.Println(settings)
 	c.JSON(http.StatusOK, statusResponse{
 		SetupCompleted: settings.Completed(),
 	})

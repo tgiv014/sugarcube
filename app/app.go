@@ -2,9 +2,10 @@ package app
 
 import (
 	"context"
-	"log"
 	"net/http"
 	"sync"
+
+	"github.com/charmbracelet/log"
 
 	"github.com/gin-gonic/gin"
 	"github.com/tgiv014/sugarcube/session"
@@ -33,6 +34,7 @@ var (
 )
 
 func New(config Config) *App {
+	log.Info("connecting to db")
 	db, err := gorm.Open(sqlite.Open(config.DBPath))
 	if err != nil {
 		log.Fatal(err)
@@ -69,8 +71,11 @@ func (a *App) Run(ctx context.Context) error {
 
 	// Start API
 	if a.Config.Environment == Development {
+		log.Info("Starting in dev mode")
 		return a.runDev()
 	}
+
+	log.Info("Starting")
 	return a.runProd()
 }
 
