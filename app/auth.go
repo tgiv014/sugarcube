@@ -1,9 +1,9 @@
 package app
 
 import (
-	"errors"
 	"net/http"
 
+	"github.com/charmbracelet/log"
 	"github.com/gin-gonic/gin"
 	"golang.org/x/crypto/bcrypt"
 )
@@ -24,6 +24,7 @@ func (a *App) login(c *gin.Context) {
 	var req loginRequest
 	err := c.BindJSON(&req)
 	if err != nil {
+		log.Warn("couldn't bind login request", "err", err)
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": err.Error(),
 		})
@@ -32,6 +33,7 @@ func (a *App) login(c *gin.Context) {
 
 	newSession, err := a.sessions.Login(req.Password)
 	if err != nil {
+		log.Warn("couldn't log in", "err", err)
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": err.Error(),
 		})
@@ -46,6 +48,7 @@ func (a *App) signup(c *gin.Context) {
 	var req loginRequest
 	err := c.BindJSON(&req)
 	if err != nil {
+		log.Warn("couldn't bind signup request", "err", err)
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": err.Error(),
 		})
@@ -53,6 +56,7 @@ func (a *App) signup(c *gin.Context) {
 	}
 
 	if !req.valid() {
+		log.Warn("signup request invalid")
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error": "invalid password",
 		})
@@ -61,21 +65,21 @@ func (a *App) signup(c *gin.Context) {
 
 	settings, err := a.settings.Get()
 	if err != nil {
+		log.Warn("couldn't get settings", "err", err)
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": err.Error(),
 		})
 		return
 	}
 	if len(settings.HashedPassword) > 0 {
-		err := errors.New("already signed up")
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": err.Error(),
-		})
+		log.Warn("signup already completed")
+		c.Status(http.StatusForbidden)
 		return
 	}
 
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
 	if err != nil {
+		log.Warn("failed to generate bcrypt hash", "err", err)
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": err.Error(),
 		})
@@ -86,6 +90,7 @@ func (a *App) signup(c *gin.Context) {
 
 	err = a.settings.Save(settings)
 	if err != nil {
+		log.Warn("failed to save password to settings", "err", err)
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": err.Error(),
 		})
