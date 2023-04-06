@@ -22,6 +22,7 @@ func main() {
 	ctx := context.Background()
 	a := app.New(app.Config{
 		Environment: getEnv(),
+		DBPath:      "db.sqlite",
 	})
 
 	err := a.Run(ctx)

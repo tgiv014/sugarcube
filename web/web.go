@@ -10,12 +10,12 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-//go:embed dist
+//go:embed all:build
 var embedFS embed.FS
 
 func Static() (gin.HandlerFunc, error) {
 	// Prod mode
-	dist, err := fs.Sub(embedFS, "dist")
+	dist, err := fs.Sub(embedFS, "build")
 	if err != nil {
 		return nil, err
 	}
