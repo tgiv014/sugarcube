@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
 	import { signup, status } from '$lib/stores';
+	import Sugarcube from '../../components/Sugarcube.svelte';
 	let error = '';
 
 	$: if ($status) {
@@ -37,7 +38,10 @@
 </script>
 
 <div class="flex min-h-screen items-center justify-center font-mono">
-	<div class="border border-stone-900 p-8 max-w-sm">
+	<div class="max-w-sm border border-stone-900 p-8">
+		<div class="mx-auto mb-4 w-32">
+			<Sugarcube style="stroke-width:4px;" />
+		</div>
 		<h1 class="mb-6 text-4xl font-thin italic">Nice to <br />meet you!</h1>
 		<p />
 		<form on:submit|preventDefault={onSubmit} class="flex flex-col gap-4">
@@ -62,11 +66,11 @@
 				/></label
 			>
 
-			<button type="submit" class="rounded-full bg-stone-900 px-4 py-2 mt-2 text-stone-100 text-xl"
+			<button type="submit" class="mt-2 rounded-full bg-stone-900 px-4 py-2 text-xl text-stone-100"
 				>Submit</button
 			>
 			{#if error}
-				<p class="bg-red-700 text-stone-100 font-bold p-4">{error}</p>
+				<p class="bg-red-700 p-4 font-bold text-stone-100">{error}</p>
 			{/if}
 		</form>
 	</div>
