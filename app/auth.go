@@ -14,12 +14,12 @@ type loginRequest struct {
 	Password string `json:"password"`
 }
 
-func (l loginRequest) valid() bool {
+func (l loginRequest) validate() error {
 	if len(l.Password) < 8 {
-		return false
+		return errors.New("password is too short")
 	}
 
-	return true
+	return nil
 }
 
 func (a *App) login(c *gin.Context) {
@@ -27,24 +27,17 @@ func (a *App) login(c *gin.Context) {
 	err := c.BindJSON(&req)
 	if err != nil {
 		log.Warn("couldn't bind login request", "err", err)
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": err.Error(),
-		})
-		return
+		Error(c, http.StatusInternalServerError, err)
 	}
 
 	newSession, err := a.sessions.Login(req.Password)
 	if errors.Is(err, session.ErrIncorrectPassword) {
-		c.JSON(http.StatusUnauthorized, gin.H{
-			"error": err.Error(),
-		})
+		Error(c, http.StatusUnauthorized, err)
 		return
 	}
 	if err != nil {
 		log.Warn("couldn't log in", "err", err)
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": err.Error(),
-		})
+		Error(c, http.StatusInternalServerError, err)
 		return
 	}
 
@@ -57,40 +50,34 @@ func (a *App) signup(c *gin.Context) {
 	err := c.BindJSON(&req)
 	if err != nil {
 		log.Warn("couldn't bind signup request", "err", err)
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": err.Error(),
-		})
+		Error(c, http.StatusInternalServerError, err)
 		return
 	}
 
-	if !req.valid() {
-		log.Warn("signup request invalid")
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "invalid password",
-		})
+	err = req.validate()
+	if err != nil {
+		log.Warn("signup request invalid", "err", err)
+		Error(c, http.StatusBadRequest, err)
 		return
 	}
 
 	settings, err := a.settings.Get()
 	if err != nil {
 		log.Warn("couldn't get settings", "err", err)
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": err.Error(),
-		})
+		Error(c, http.StatusInternalServerError, err)
 		return
 	}
 	if len(settings.HashedPassword) > 0 {
+		err = errors.New("signup already completed")
 		log.Warn("signup already completed")
-		c.Status(http.StatusForbidden)
+		Error(c, http.StatusForbidden, err)
 		return
 	}
 
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
 	if err != nil {
 		log.Warn("failed to generate bcrypt hash", "err", err)
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": err.Error(),
-		})
+		Error(c, http.StatusInternalServerError, err)
 		return
 	}
 
@@ -99,9 +86,7 @@ func (a *App) signup(c *gin.Context) {
 	err = a.settings.Save(settings)
 	if err != nil {
 		log.Warn("failed to save password to settings", "err", err)
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": err.Error(),
-		})
+		Error(c, http.StatusInternalServerError, err)
 		return
 	}
 

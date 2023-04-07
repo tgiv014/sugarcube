@@ -71,6 +71,27 @@ func (s *Service) Login(password string) (*Session, error) {
 	return s.newSession()
 }
 
+var (
+	ErrExpired = errors.New("session expired")
+	ErrInvalid = errors.New("invalid session")
+)
+
+func (s *Service) GetSession(token string) (*Session, error) {
+	session := Session{}
+	result := s.db.Where("token = ?", token).First(&session)
+	if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+		return nil, ErrInvalid
+	}
+	if result.Error != nil {
+		return nil, result.Error
+	}
+	if session.Expires.Before(time.Now()) {
+		return nil, ErrExpired
+	}
+
+	return &session, nil
+}
+
 func (s *Service) Authenticate(c *gin.Context) {
 	token, err := c.Cookie("token")
 	if err != nil {
@@ -78,18 +99,13 @@ func (s *Service) Authenticate(c *gin.Context) {
 		return
 	}
 
-	session := Session{}
-	result := s.db.Where("token = ?", token).First(&session)
-	if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+	_, err = s.GetSession(token)
+	if errors.Is(err, ErrInvalid) || errors.Is(err, ErrExpired) {
 		c.AbortWithStatus(http.StatusUnauthorized)
 		return
 	}
-	if result.Error != nil {
+	if err != nil {
 		c.Abort()
-		return
-	}
-	if session.Expires.Before(time.Now()) {
-		c.AbortWithStatus(http.StatusUnauthorized)
 		return
 	}
 }

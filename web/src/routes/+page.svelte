@@ -1,19 +1,29 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
+	import { login, status } from '../lib/stores';
+
+	let error = '';
+
+	$: if ($status) {
+		if ($status.sessionValid) {
+			goto('/app');
+		} else if (!$status.setupCompleted) {
+			goto('/setup');
+		}
+	}
 
 	function onSubmit(e: SubmitEvent) {
 		const formData = new FormData(e.target as HTMLFormElement);
 		const formObj = Object.fromEntries(formData.entries());
-		fetch('/api/login', {
-			method: 'POST',
-			body: JSON.stringify(formObj)
-		}).then((response) => {
-			if (response.status != 200) {
-				return;
-			}
-
-			goto('/app');
-		});
+		login({
+			password: formObj['password'].toString()
+		})
+			.then(() => {
+				goto('/app');
+			})
+			.catch((reason) => {
+				error = reason;
+			});
 	}
 </script>
 
@@ -33,5 +43,8 @@
 				/></label
 			>
 		</form>
+		{#if error}
+			<p>{error}</p>
+		{/if}
 	</div>
 </div>
