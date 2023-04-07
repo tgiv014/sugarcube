@@ -2,12 +2,11 @@ package app
 
 import (
 	"context"
-	"net/http"
-	"sync"
 
 	"github.com/charmbracelet/log"
 
 	"github.com/gin-gonic/gin"
+	"github.com/tgiv014/sugarcube/glucose"
 	"github.com/tgiv014/sugarcube/session"
 	"github.com/tgiv014/sugarcube/settings"
 	"gorm.io/driver/sqlite"
@@ -19,6 +18,7 @@ type App struct {
 	db       *gorm.DB
 	settings *settings.Service
 	sessions *session.Service
+	glucose  *glucose.Service
 }
 
 type Config struct {
@@ -42,12 +42,14 @@ func New(config Config) *App {
 
 	settingsService := settings.NewService(db)
 	sessionService := session.NewService(db, settingsService)
+	glucoseService := glucose.NewService(db, settingsService)
 
 	a := &App{
 		Config:   config,
 		db:       db,
 		settings: settingsService,
 		sessions: sessionService,
+		glucose:  glucoseService,
 	}
 
 	a.db = db
@@ -56,19 +58,6 @@ func New(config Config) *App {
 }
 
 func (a *App) Run(ctx context.Context) error {
-	// Start scheduler and set up sync
-	wg := sync.WaitGroup{}
-	wg.Add(1)
-	defer wg.Wait() // Don't leave without waiting for the scheduler to close
-
-	ctx, cancel := context.WithCancel(ctx)
-	defer cancel() // Ask scheduler to stop before leaving
-
-	go func(ctx context.Context) {
-		defer wg.Done()
-		a.runScheduler(ctx)
-	}(ctx)
-
 	// Start API
 	if a.Config.Environment == Development {
 		log.Info("Starting in dev mode")
@@ -85,8 +74,8 @@ func (a *App) attachRoutes(r gin.IRouter) {
 		api.POST("/login", a.login)
 		api.POST("/signup", a.signup)
 		api.GET("/status", a.status)
-		api.GET("/usersonly", a.sessions.Authenticate, func(c *gin.Context) {
-			c.JSON(http.StatusOK, gin.H{"hey": "we good"})
-		})
+		api.GET("/settings", a.sessions.Authenticate, a.getSettings)
+		api.PATCH("/settings", a.sessions.Authenticate, a.updateSettings)
+		api.GET("/readings", a.sessions.Authenticate, a.getReadings)
 	}
 }

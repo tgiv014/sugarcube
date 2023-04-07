@@ -8,6 +8,8 @@ import (
 type Settings struct {
 	gorm.Model
 	HashedPassword []byte `json:"-"`
+	DexcomUsername string `json:"dexcomUsername"`
+	DexcomPassword string `json:"-"`
 }
 
 func (s Settings) ComparePassword(password []byte) error {

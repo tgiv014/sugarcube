@@ -3,6 +3,8 @@ package settings
 import (
 	"errors"
 
+	"github.com/charmbracelet/log"
+
 	"gorm.io/gorm"
 )
 
@@ -13,7 +15,7 @@ type Service struct {
 func NewService(db *gorm.DB) *Service {
 	err := db.AutoMigrate(&Settings{})
 	if err != nil {
-		panic(err)
+		log.Fatal(err)
 	}
 
 	return &Service{

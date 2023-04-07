@@ -2,6 +2,7 @@ package app
 
 import (
 	"errors"
+	"fmt"
 	"net/http"
 
 	"github.com/charmbracelet/log"
@@ -26,8 +27,10 @@ func (a *App) login(c *gin.Context) {
 	var req loginRequest
 	err := c.BindJSON(&req)
 	if err != nil {
+		err = fmt.Errorf("could not bind request: %w", err)
 		log.Warn("couldn't bind login request", "err", err)
 		Error(c, http.StatusInternalServerError, err)
+		return
 	}
 
 	newSession, err := a.sessions.Login(req.Password)
