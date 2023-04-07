@@ -28,6 +28,7 @@
 					id="password"
 					type="password"
 					autocomplete="off"
+					placeholder="right"
 					class="rounded-full border border-stone-900 px-4 text-xl"
 				/></label
 			>

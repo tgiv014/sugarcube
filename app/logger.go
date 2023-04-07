@@ -21,6 +21,5 @@ func logger(c *gin.Context) {
 
 	log.With("latency", time.Since(start),
 		"ip", c.ClientIP(),
-		"method", c.Request.Method,
-		"status", c.Writer.Status()).Info(path)
+		"method", c.Request.Method).Infof("%d %s", c.Writer.Status(), path)
 }

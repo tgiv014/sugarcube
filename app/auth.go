@@ -1,10 +1,12 @@
 package app
 
 import (
+	"errors"
 	"net/http"
 
 	"github.com/charmbracelet/log"
 	"github.com/gin-gonic/gin"
+	"github.com/tgiv014/sugarcube/session"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -32,6 +34,12 @@ func (a *App) login(c *gin.Context) {
 	}
 
 	newSession, err := a.sessions.Login(req.Password)
+	if errors.Is(err, session.ErrIncorrectPassword) {
+		c.JSON(http.StatusUnauthorized, gin.H{
+			"error": err.Error(),
+		})
+		return
+	}
 	if err != nil {
 		log.Warn("couldn't log in", "err", err)
 		c.JSON(http.StatusInternalServerError, gin.H{

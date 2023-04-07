@@ -8,7 +8,13 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"github.com/tgiv014/sugarcube/settings"
+	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
+)
+
+var (
+	ErrIncorrectPassword = errors.New("incorrect password")
+	ErrNoPassword        = errors.New("no password configured")
 )
 
 type Service struct {
@@ -50,7 +56,14 @@ func (s *Service) Login(password string) (*Session, error) {
 		return nil, err
 	}
 
+	if len(settings.HashedPassword) == 0 {
+		return nil, ErrNoPassword
+	}
+
 	err = settings.ComparePassword([]byte(password))
+	if errors.Is(err, bcrypt.ErrMismatchedHashAndPassword) {
+		return nil, ErrIncorrectPassword
+	}
 	if err != nil {
 		return nil, err
 	}

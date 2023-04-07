@@ -99,7 +99,7 @@ func waitForVite(host string) error {
 		}
 		response, err := http.DefaultClient.Do(request)
 		if err != nil {
-			log.Warn(err)
+			log.Warn("couldn't reach vite", "err", err)
 			continue
 		}
 
