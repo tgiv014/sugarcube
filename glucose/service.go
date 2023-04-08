@@ -34,13 +34,13 @@ func NewService(db *gorm.DB, settings *settings.Service) *Service {
 
 func (s *Service) glucoseFetcher() {
 	lastFetch := time.Time{}
-	timer := time.NewTimer(time.Minute)
+	timer := time.NewTicker(time.Minute)
 	s.fetchNow = make(chan fetchParams)
 
 	go func() {
 		s.fetchNow <- fetchParams{
-			minutes:  60,
-			maxCount: 60,
+			minutes:  60 * 12,
+			maxCount: 12 * 12,
 		}
 	}()
 
@@ -131,7 +131,7 @@ type GetReadingsParams struct {
 
 func (s *Service) GetReadings(start, end time.Time) ([]GlucoseReading, error) {
 	var readings []GlucoseReading
-	result := s.db.Where("timestamp >= ? AND timestamp < ?", start, end).Find(&readings)
+	result := s.db.Limit(1000).Where("timestamp >= ? AND timestamp < ?", start, end).Find(&readings)
 	if result.Error != nil {
 		return nil, result.Error
 	}

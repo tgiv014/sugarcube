@@ -46,3 +46,7 @@ export const signup = async (password: string) => {
 
     await getStatus();
 }
+
+export const getReadings = async (start: Date, end: Date) => {
+
+}

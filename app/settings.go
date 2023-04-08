@@ -34,7 +34,7 @@ func (s settingsUpdate) apply(settings *settings.Settings) {
 func (a *App) updateSettings(c *gin.Context) {
 	update := settingsUpdate{}
 
-	err := c.ShouldBindJSON(&update)
+	err := c.Bind(&update)
 	if err != nil {
 		Error(c, http.StatusBadRequest, err)
 		return

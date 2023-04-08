@@ -6,7 +6,6 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/charmbracelet/log"
 	dexcomshare "github.com/tgiv014/dexcom-share"
 	"gorm.io/gorm"
 )
@@ -30,7 +29,6 @@ func GlucoseReadingFromDexcomShare(ds dexcomshare.GlucoseEntry) (*GlucoseReading
 	if err != nil {
 		return nil, err
 	}
-	log.Info(matches)
 	reading := &GlucoseReading{
 
 		Timestamp: time.UnixMilli(unixtimeMillis),

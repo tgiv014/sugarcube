@@ -25,7 +25,7 @@ func (l loginRequest) validate() error {
 
 func (a *App) login(c *gin.Context) {
 	var req loginRequest
-	err := c.BindJSON(&req)
+	err := c.Bind(&req)
 	if err != nil {
 		err = fmt.Errorf("could not bind request: %w", err)
 		log.Warn("couldn't bind login request", "err", err)
@@ -50,7 +50,7 @@ func (a *App) login(c *gin.Context) {
 
 func (a *App) signup(c *gin.Context) {
 	var req loginRequest
-	err := c.BindJSON(&req)
+	err := c.Bind(&req)
 	if err != nil {
 		log.Warn("couldn't bind signup request", "err", err)
 		Error(c, http.StatusInternalServerError, err)
@@ -92,6 +92,19 @@ func (a *App) signup(c *gin.Context) {
 		Error(c, http.StatusInternalServerError, err)
 		return
 	}
+
+	newSession, err := a.sessions.Login(req.Password)
+	if errors.Is(err, session.ErrIncorrectPassword) {
+		Error(c, http.StatusUnauthorized, err)
+		return
+	}
+	if err != nil {
+		log.Warn("couldn't log in", "err", err)
+		Error(c, http.StatusInternalServerError, err)
+		return
+	}
+
+	c.SetCookie("token", newSession.Token, 24*60*60, "", "", false, true)
 
 	c.Status(http.StatusOK)
 }
