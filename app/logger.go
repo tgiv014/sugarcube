@@ -8,7 +8,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func logger(c *gin.Context) {
+func requestLogger(c *gin.Context) {
 	start := time.Now()
 	path := c.Request.URL.Path
 	// raw := c.Request.URL.RawQuery

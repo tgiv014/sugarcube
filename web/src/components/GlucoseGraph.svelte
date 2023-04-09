@@ -13,9 +13,10 @@
 	let h: number = 0;
 
 	$: yMax = h - 18;
+	$: xMax = w - 64;
 
 	$: extents = extent(data.map((d) => d.timestamp)) as [Date, Date];
-	$: xScale = scaleTime().domain(extents).range([0, w]);
+	$: xScale = scaleTime().domain(extents).range([0, xMax]);
 	$: yScale = scaleLinear().domain([40, 300]).range([yMax, 0]);
 
 	$: pathLine = line<GlucoseReading>()
@@ -34,48 +35,60 @@
 		class="svg-container h-64 w-full"
 	>
 		<svg bind:this={svg} width={w} height={h}>
-			<pattern
-				id="lowHatch"
-				patternUnits="userSpaceOnUse"
-				width="4"
-				height="4"
-				patternTransform="scale(4 4)"
-			>
-				<path
-					d="M-1,1 l2,-2
+			<g>
+				<pattern
+					id="lowHatch"
+					patternUnits="userSpaceOnUse"
+					width="4"
+					height="4"
+					patternTransform="scale(4 4)"
+				>
+					<path
+						d="M-1,1 l2,-2
 						 M0,4 l4,-4
 						 M3,5 l2,-2"
-					class="low-hash"
+						class="low-hash"
+					/>
+				</pattern>
+				<line y1={yScale(60)} y2={yScale(60)} x1="0" x2={xMax} class="low-line" />
+				<rect
+					x="0"
+					y={yScale(60)}
+					width={xMax}
+					height={yScale(40) - yScale(60)}
+					fill="url(#lowHatch)"
 				/>
-			</pattern>
-			<line y1={yScale(60)} y2={yScale(60)} x1="0" x2="100%" class="low-line" />
-			<rect
-				x="0"
-				y={yScale(60)}
-				width="100%"
-				height={yScale(40) - yScale(60)}
-				fill="url(#lowHatch)"
-			/>
-			<pattern
-				id="highHatch"
-				patternUnits="userSpaceOnUse"
-				width="4"
-				height="4"
-				patternTransform="scale(4 4)"
-			>
-				<path
-					d="M-1,1 l2,-2
+				<text x={xMax + 16} y={yScale(60)}> 60 </text>
+			</g>
+			<g>
+				<pattern
+					id="highHatch"
+					patternUnits="userSpaceOnUse"
+					width="4"
+					height="4"
+					patternTransform="scale(4 4)"
+				>
+					<path
+						d="M-1,1 l2,-2
 					 M0,4 l4,-4
 					 M3,5 l2,-2"
-					class="high-hash"
-				/>
-			</pattern>
-			<line y1={yScale(180)} y2={yScale(180)} x1="0" x2="100%" class="high-line" />
-			<rect x="0" y="0" width="100%" height={yScale(180)} fill="url(#highHatch)" />
+						class="high-hash"
+					/>
+				</pattern>
+				<line y1={yScale(180)} y2={yScale(180)} x1="0" x2={xMax} class="high-line" />
+				<rect x="0" y="0" width={xMax} height={yScale(180)} fill="url(#highHatch)" />
+				<text x={xMax + 16} y={yScale(180)}> 180 </text>
+			</g>
+			<g>
+				<line y1={yScale(100)} y2={yScale(100)} x1="0" x2={xMax} class="goal-line" />
+				<text x={xMax + 16} y={yScale(100)}> 100 </text>
+			</g>
+			<text x={xMax + 16} y={yScale(250)}> 250 </text>
+
 			<!-- transform="translate({xScale( -->
 			{#each xScale.ticks(6) as tick, i (tick)}
 				<g class="tick" transform="translate({xScale(tick)},0)">
-					<line class="gridline" y1={yMax} y2="0" x1="0" x2="0" />
+					<line class="grid-line" y1={yMax} y2="0" x1="0" x2="0" />
 					<text x={0} y={h} text-anchor="middle">
 						{tick.toLocaleTimeString('en', { timeStyle: 'short' })}
 						<!-- {i} -->
@@ -105,7 +118,7 @@
 	}
 	path {
 		stroke: theme('colors.stone.400');
-		stroke-width: 8px;
+		stroke-width: 4px;
 		fill: none;
 		stroke-linecap: round;
 	}
@@ -114,10 +127,14 @@
 		stroke-width: 2px;
 		fill: white;
 	}
-	.gridline {
+	.grid-line {
 		stroke: theme('colors.stone.400');
 		stroke-width: 1px;
 		stroke-dasharray: 4;
+	}
+	.goal-line {
+		stroke: theme('colors.stone.400');
+		stroke-width: 1px;
 	}
 	.low-line {
 		fill: none;

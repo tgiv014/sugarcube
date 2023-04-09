@@ -18,7 +18,7 @@ func (a *App) runProd() error {
 
 	r := gin.New()
 	r.Use(gin.Recovery())
-	r.Use(logger)
+	r.Use(requestLogger)
 	r.Use(static)
 	a.attachRoutes(r)
 	r.NoRoute(func(c *gin.Context) {

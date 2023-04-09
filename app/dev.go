@@ -66,7 +66,7 @@ func (a *App) runDev() error {
 	// Start router on localhost:8080
 	r := gin.New()
 	r.Use(gin.Recovery())
-	r.Use(logger)
+	r.Use(requestLogger)
 	r.Use(reverseProxy("http://localhost:5173"))
 	a.attachRoutes(r)
 

@@ -30,10 +30,11 @@ func GlucoseReadingFromDexcomShare(ds dexcomshare.GlucoseEntry) (*GlucoseReading
 		return nil, err
 	}
 	reading := &GlucoseReading{
-
 		Timestamp: time.UnixMilli(unixtimeMillis),
 		Value:     ds.Value,
 	}
+
+	// Readings should be unique by timestamp
 	reading.ID = uint(unixtimeMillis / 1000)
 	return reading, nil
 }

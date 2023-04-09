@@ -2,6 +2,7 @@ package app
 
 import (
 	"context"
+	"os"
 
 	"github.com/charmbracelet/log"
 
@@ -11,6 +12,7 @@ import (
 	"github.com/tgiv014/sugarcube/settings"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
+	"gorm.io/gorm/logger"
 )
 
 type App struct {
@@ -35,7 +37,12 @@ var (
 
 func New(config Config) *App {
 	log.Info("connecting to db")
-	db, err := gorm.Open(sqlite.Open(config.DBPath))
+	db, err := gorm.Open(sqlite.Open(config.DBPath), &gorm.Config{
+		// Shhh
+		Logger: logger.New(log.New(os.Stdout), logger.Config{
+			LogLevel: logger.Silent,
+		}),
+	})
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -58,6 +65,8 @@ func New(config Config) *App {
 }
 
 func (a *App) Run(ctx context.Context) error {
+	// gin debug logs are pretty loud
+	gin.SetMode(gin.ReleaseMode)
 	// Start API
 	if a.Config.Environment == Development {
 		log.Info("Starting in dev mode")
