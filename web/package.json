@@ -42,6 +42,7 @@
 		"@fontsource/inter": "^4.5.15",
 		"d3": "^7.8.4",
 		"d3-shape": "^3.2.0",
-		"layercake": "^7.3.5"
+		"layercake": "^7.3.5",
+		"svelte-icons": "^2.1.0"
 	}
 }

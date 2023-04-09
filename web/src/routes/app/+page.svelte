@@ -1,21 +1,27 @@
 <script lang="ts">
 	import { onDestroy } from 'svelte';
 	import GlucoseGraph from '../../components/GlucoseGraph.svelte';
-	import type { ErrorResponse, GlucoseReading } from '../../lib/types';
+	import { type ErrorResponse, type GlucoseReadingResponse, GlucoseReading } from '../../lib/types';
+	import { formatReadingTime } from '$lib/utils';
 
-	type ReadingAndCalculatedData = {
-		Reading: GlucoseReading;
-		Delta: number;
-	};
 	let readings: GlucoseReading[] = [];
 
-	let latestReading: ReadingAndCalculatedData | undefined;
+	let latestReading: GlucoseReading | undefined;
+	let timestampstring: string = '';
+	let delta: number | undefined;
 
 	$: if (readings.length > 0) {
-		latestReading = {
-			Reading: readings[readings.length - 1],
-			Delta: 0
-		};
+		latestReading = readings[readings.length - 1];
+	}
+
+	$: if (readings.length >= 2) {
+		const nextNewestReading = readings[readings.length - 2];
+		const timeDelta =
+			(latestReading!.timestamp.valueOf() - nextNewestReading.timestamp.valueOf()) / 1000;
+
+		if (Math.round(timeDelta / 60) == 5) {
+			delta = latestReading!.value - nextNewestReading.value;
+		}
 	}
 
 	const fetchReadings = async () => {
@@ -24,21 +30,51 @@
 			const err = (await response.json()) as ErrorResponse;
 			throw new Error(err.error);
 		}
-		readings = (await response.json()) as GlucoseReading[];
+		const responseReadings = (await response.json()) as GlucoseReadingResponse[];
+
+		readings = responseReadings.map((reading) => new GlucoseReading(reading));
 	};
 	fetchReadings();
-	const interval = setInterval(fetchReadings, 1000 * 60);
+	const fetchReadingsInterval = setInterval(fetchReadings, 1000 * 60);
+
+	const updateTimestamp = async () => {
+		if (!latestReading) {
+			return;
+		}
+		timestampstring = formatReadingTime(
+			(new Date().valueOf() - latestReading.timestamp.valueOf()) / 1000
+		);
+	};
+	updateTimestamp();
+	const updateTimestampInterval = setInterval(updateTimestamp, 1000);
 
 	onDestroy(() => {
-		clearInterval(interval);
+		clearInterval(fetchReadingsInterval);
+		clearInterval(updateTimestampInterval);
 	});
 </script>
 
-<div class="my-4 flex">
-	<GlucoseGraph data={readings} />
-	<div class="mx-4 flex-grow font-mono">
-		<h1 class="text-8xl font-bold">{latestReading ? latestReading.Reading.Value : '---'}</h1>
-		<p class="text-right text-2xl">+10 / 5min</p>
-		<p class="text-right text-2xl italic">5 min ago</p>
+<div class="flex-col">
+	<div class="flex">
+		<div class="my-2 h-full w-full">
+			<GlucoseGraph data={readings} />
+		</div>
+		<div class="min-w-fit flex-grow border-l border-stone-900 px-4 py-4 font-mono">
+			{#if latestReading}
+				<h1 class="text-8xl font-bold">{latestReading.value}</h1>
+				{#if delta}
+					<p class="text-right text-2xl">{delta > 0 ? '+' : ''}{delta} / 5min</p>
+				{/if}
+				<p class="text-right text-2xl italic">
+					{timestampstring}
+				</p>
+			{:else}
+				<h1 class="text-8xl font-bold">---</h1>
+				<p class="italic">No recent readings...</p>
+			{/if}
+		</div>
+	</div>
+	<div class="flex border-t border-stone-900">
+		<p>Oh you just know you're getting widgets here for stats</p>
 	</div>
 </div>

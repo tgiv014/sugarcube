@@ -21,17 +21,8 @@ func (a *App) getReadings(c *gin.Context) {
 		Error(c, http.StatusInternalServerError, err)
 		return
 	}
-	// start := time.Now().UTC().Add(-time.Hour * 8).Unix()
-	// end := time.Now().UTC().Add(time.Hour * 8).Unix()
-
-	// if request.Start != nil {
-	// 	start = *request.Start
-	// }
-	// if request.End != nil {
-	// 	end = *request.End
-	// }
 	readings, err := a.glucose.GetReadings(
-		time.Now().Add(-time.Hour*8),
+		time.Now().Add(-time.Hour*4),
 		time.Now(),
 	)
 	if err != nil {

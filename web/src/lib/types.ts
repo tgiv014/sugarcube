@@ -7,11 +7,20 @@ export type ErrorResponse = {
     error: string
 }
 
-export type GlucoseReading = {
+export type GlucoseReadingResponse = {
     ID: number
     CreatedAt: string
     UpdatedAt: string
     DeletedAt: string
     Value: number
-    Timestamp: string
+}
+
+export class GlucoseReading {
+    timestamp: Date
+    value: number
+
+    constructor(res: GlucoseReadingResponse) {
+        this.timestamp = new Date(res.ID * 1000)
+        this.value = res.Value
+    }
 }

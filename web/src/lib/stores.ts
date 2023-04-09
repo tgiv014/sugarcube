@@ -20,7 +20,10 @@ getStatus(); // Get on load
 export const login = async (loginRequest: any) => {
     const response = await fetch('/api/login', {
         method: 'POST',
-        body: JSON.stringify(loginRequest)
+        body: JSON.stringify(loginRequest),
+        headers: {
+            "Content-Type": "application/json",
+        },
     })
 
     if (response.status != 200) {
@@ -36,7 +39,10 @@ export const signup = async (password: string) => {
         method: 'POST',
         body: JSON.stringify({
             password: password,
-        })
+        }),
+        headers: {
+            "Content-Type": "application/json",
+        },
     })
 
     if (response.status != 200) {

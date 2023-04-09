@@ -11,11 +11,11 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-type loginRequest struct {
+type LoginRequest struct {
 	Password string `json:"password"`
 }
 
-func (l loginRequest) validate() error {
+func (l LoginRequest) validate() error {
 	if len(l.Password) < 8 {
 		return errors.New("password is too short")
 	}
@@ -24,7 +24,7 @@ func (l loginRequest) validate() error {
 }
 
 func (a *App) login(c *gin.Context) {
-	var req loginRequest
+	var req LoginRequest
 	err := c.Bind(&req)
 	if err != nil {
 		err = fmt.Errorf("could not bind request: %w", err)
@@ -32,6 +32,7 @@ func (a *App) login(c *gin.Context) {
 		Error(c, http.StatusInternalServerError, err)
 		return
 	}
+	fmt.Println(req)
 
 	newSession, err := a.sessions.Login(req.Password)
 	if errors.Is(err, session.ErrIncorrectPassword) {
@@ -49,13 +50,14 @@ func (a *App) login(c *gin.Context) {
 }
 
 func (a *App) signup(c *gin.Context) {
-	var req loginRequest
+	var req LoginRequest
 	err := c.Bind(&req)
 	if err != nil {
 		log.Warn("couldn't bind signup request", "err", err)
 		Error(c, http.StatusInternalServerError, err)
 		return
 	}
+	fmt.Println(req)
 
 	err = req.validate()
 	if err != nil {
