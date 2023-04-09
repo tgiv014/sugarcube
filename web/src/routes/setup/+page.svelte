@@ -38,8 +38,8 @@
 	}
 </script>
 
-<div class="flex min-h-screen items-center justify-center font-mono">
-	<div class="max-w-sm border border-stone-900">
+<div class="flex min-h-screen items-center justify-center">
+	<div class="max-w-sm border border-stone-900 dark:border-stone-100">
 		<div class="p-8">
 			<div class="mx-auto mb-4 w-32">
 				<Sugarcube style="stroke-width:4px;" />
@@ -48,13 +48,13 @@
 			<p />
 			<form on:submit|preventDefault={onSubmit} class="flex flex-col gap-4">
 				<label class="flex flex-col gap-2">
-					Please choose a new password<input
+					Please choose a password<input
 						name="password"
 						id="password"
 						type="password"
 						autocomplete="off"
-						placeholder="hunter2"
-						class="rounded-full border border-stone-900 px-4 py-1 text-xl"
+						placeholder="password"
+						class="rounded-full border border-stone-900 bg-stone-100 px-4 py-1 text-xl dark:border-stone-100 dark:bg-stone-900"
 					/></label
 				>
 				<label class="flex flex-col gap-2">
@@ -64,13 +64,14 @@
 						type="password"
 						autocomplete="off"
 						placeholder="right here"
-						class="rounded-full border border-stone-900 px-4 py-1 text-xl"
+						class="rounded-full border border-stone-900 bg-stone-100 px-4 py-1 text-xl dark:border-stone-100 dark:bg-stone-900"
 					/></label
 				>
 
 				<button
 					type="submit"
-					class="mt-2 rounded-full bg-stone-900 px-4 py-2 text-xl text-stone-100">Submit</button
+					class="mt-2 rounded-full bg-stone-900 px-4 py-2 text-xl dark:bg-stone-100 dark:text-stone-900"
+					>Submit</button
 				>
 			</form>
 		</div>

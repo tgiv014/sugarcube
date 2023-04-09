@@ -127,6 +127,10 @@
 		stroke-width: 2px;
 		fill: white;
 	}
+	text {
+		fill: theme('colors.stone.900');
+	}
+
 	.grid-line {
 		stroke: theme('colors.stone.400');
 		stroke-width: 1px;
@@ -155,5 +159,34 @@
 		fill: none;
 		stroke: theme('colors.amber.200');
 		stroke-width: 0.5px;
+	}
+
+	@media (prefers-color-scheme: dark) {
+		text {
+			fill: theme('colors.stone.100');
+		}
+
+		.grid-line {
+			stroke: theme('colors.stone.600');
+		}
+		.goal-line {
+			stroke: theme('colors.stone.500');
+		}
+		.low-line {
+			fill: none;
+			stroke: theme('colors.red.900');
+		}
+		.low-hash {
+			fill: none;
+			stroke: theme('colors.red.900');
+		}
+		.high-line {
+			fill: none;
+			stroke: theme('colors.amber.900');
+		}
+		.high-hash {
+			fill: none;
+			stroke: theme('colors.amber.900');
+		}
 	}
 </style>
