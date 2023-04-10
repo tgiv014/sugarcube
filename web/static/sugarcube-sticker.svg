@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg width="100%" height="100%" viewBox="0 0 400 448" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xml:space="preserve" xmlns:serif="http://www.serif.com/" style="fill-rule:evenodd;clip-rule:evenodd;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:1.5;">
+    <rect id="Artboard1" x="0" y="0" width="400" height="448" style="fill:none;"/>
+    <g id="Artboard11" serif:id="Artboard1">
+        <path d="M176.259,21.982C191.305,13.295 209.843,13.295 224.89,21.982L363.369,101.933C378.416,110.62 387.685,126.675 387.685,144.049L387.685,303.951C387.685,321.325 378.416,337.38 363.369,346.067L224.89,426.018C209.843,434.705 191.305,434.705 176.259,426.018L37.779,346.067C22.733,337.38 13.464,321.325 13.464,303.951L13.464,144.049C13.464,126.675 22.733,110.62 37.779,101.933L176.259,21.982Z" style="fill:white;"/>
+        <path d="M186.676,40.024C195.276,35.059 205.872,35.059 214.473,40.024C245.8,58.111 321.626,101.889 352.953,119.976C361.553,124.941 366.851,134.118 366.851,144.049L366.851,303.951C366.851,313.882 361.553,323.059 352.953,328.024C321.626,346.111 245.8,389.889 214.473,407.976C205.872,412.941 195.276,412.941 186.676,407.976C155.349,389.889 79.523,346.111 48.196,328.024C39.596,323.059 34.297,313.882 34.297,303.951L34.297,144.049C34.297,134.118 39.596,124.941 48.196,119.976C79.523,101.889 155.349,58.111 186.676,40.024Z" style="fill:none;stroke:black;stroke-width:16.67px;"/>
+        <path d="M339.138,144C339.138,144 249.726,195.623 214.55,215.931C205.902,220.924 200.574,230.151 200.574,240.137L200.574,384" style="fill:none;stroke:black;stroke-width:16.67px;"/>
+        <path d="M172.862,208L62.01,144" style="fill:none;stroke:black;stroke-width:16.67px;"/>
+        <path d="M256,240L256,272" style="fill:none;stroke:black;stroke-width:16.67px;stroke-linejoin:bevel;"/>
+        <path d="M311.426,208L311.426,240" style="fill:none;stroke:black;stroke-width:16.67px;stroke-linejoin:bevel;"/>
+        <path d="M269.856,328C279.266,325.454 288.501,320.077 297.569,312" style="fill:none;stroke:black;stroke-width:16.67px;stroke-linejoin:bevel;"/>
+    </g>
+</svg>
