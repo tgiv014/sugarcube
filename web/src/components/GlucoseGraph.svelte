@@ -17,7 +17,7 @@
 
 	$: extents = extent(data.map((d) => d.timestamp)) as [Date, Date];
 	$: xScale = scaleTime().domain(extents).range([0, xMax]);
-	$: yScale = scaleLinear().domain([40, 300]).range([yMax, 0]);
+	$: yScale = scaleLinear().domain([40, 200]).range([yMax, 0]);
 
 	$: pathLine = line<GlucoseReading>()
 		.x((d) => xScale(d.timestamp))
@@ -32,7 +32,7 @@
 		bind:this={container}
 		bind:clientWidth={w}
 		bind:clientHeight={h}
-		class="svg-container h-64 w-full"
+		class="svg-container h-80 w-full"
 	>
 		<svg bind:this={svg} width={w} height={h}>
 			<g>

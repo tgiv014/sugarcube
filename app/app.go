@@ -7,6 +7,7 @@ import (
 	"github.com/charmbracelet/log"
 
 	"github.com/gin-gonic/gin"
+	"github.com/tgiv014/sugarcube/events"
 	"github.com/tgiv014/sugarcube/glucose"
 	"github.com/tgiv014/sugarcube/session"
 	"github.com/tgiv014/sugarcube/settings"
@@ -17,6 +18,7 @@ import (
 
 type App struct {
 	Config   Config
+	bus      *events.Bus
 	db       *gorm.DB
 	settings *settings.Service
 	sessions *session.Service
@@ -36,6 +38,8 @@ var (
 )
 
 func New(config Config) *App {
+	bus := events.NewBus()
+
 	log.Info("connecting to db")
 	db, err := gorm.Open(sqlite.Open(config.DBPath), &gorm.Config{
 		// Shhh
@@ -49,10 +53,11 @@ func New(config Config) *App {
 
 	settingsService := settings.NewService(db)
 	sessionService := session.NewService(db, settingsService)
-	glucoseService := glucose.NewService(db, settingsService)
+	glucoseService := glucose.NewService(bus, db, settingsService)
 
 	a := &App{
 		Config:   config,
+		bus:      bus,
 		db:       db,
 		settings: settingsService,
 		sessions: sessionService,
@@ -86,5 +91,6 @@ func (a *App) attachRoutes(r gin.IRouter) {
 		api.GET("/settings", a.sessions.Authenticate, a.getSettings)
 		api.PATCH("/settings", a.sessions.Authenticate, a.updateSettings)
 		api.GET("/readings", a.sessions.Authenticate, a.getReadings)
+		api.GET("/bus", a.bus.Handler)
 	}
 }

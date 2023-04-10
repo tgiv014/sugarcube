@@ -7,23 +7,26 @@ import (
 	"github.com/charmbracelet/log"
 	"github.com/mattn/go-sqlite3"
 	dexcomshare "github.com/tgiv014/dexcom-share"
+	"github.com/tgiv014/sugarcube/events"
 	"github.com/tgiv014/sugarcube/settings"
 	"gorm.io/gorm"
 )
 
 type Service struct {
+	bus      *events.Bus
 	db       *gorm.DB
 	settings *settings.Service
 	fetchNow chan fetchParams
 }
 
-func NewService(db *gorm.DB, settings *settings.Service) *Service {
+func NewService(bus *events.Bus, db *gorm.DB, settings *settings.Service) *Service {
 	err := db.AutoMigrate(&GlucoseReading{})
 	if err != nil {
 		panic(err)
 	}
 
 	s := &Service{
+		bus:      bus,
 		db:       db,
 		settings: settings,
 	}
@@ -141,6 +144,7 @@ func (s *Service) fetchGlucoseEntries(params fetchParams) (time.Duration, error)
 
 	if newValues > 0 {
 		log.Info("Newest glucose entry!", "value", lastReading.Value, "t", lastReading.Timestamp)
+		s.bus.Emit(NewReadingsEvent{})
 	}
 
 	return wait.Round(time.Second), nil

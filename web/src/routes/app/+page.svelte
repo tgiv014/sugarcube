@@ -37,6 +37,20 @@
 	fetchReadings();
 	const fetchReadingsInterval = setInterval(fetchReadings, 1000 * 60);
 
+	type baseEvent = {
+		Topic: string;
+		Payload: any;
+	};
+	const events = new EventSource('/api/bus');
+	events.addEventListener('message', async (ev) => {
+		console.log(ev);
+		const parsedEvent = JSON.parse(ev.data) as baseEvent;
+		console.log(parsedEvent);
+		if (parsedEvent.Topic == 'newReading') {
+			fetchReadings();
+		}
+	});
+
 	const updateTimestamp = async () => {
 		if (!latestReading) {
 			return;
