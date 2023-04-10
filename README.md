@@ -4,5 +4,5 @@
 
 `sugarcube` is an experimental dashboard for viewing blood glucose data in the browser. It's built with two goals in mind:
 
-1. *Be simple* - Easy to set up - One binary with low resource requirements. 
-2. *Be sweet* - Do few things well.
+1. *Be simple* - Only do a few things.
+2. *Be sweet* - Do those few things well.
