@@ -32,7 +32,6 @@ func (a *App) login(c *gin.Context) {
 		Error(c, http.StatusInternalServerError, err)
 		return
 	}
-	fmt.Println(req)
 
 	newSession, err := a.sessions.Login(req.Password)
 	if errors.Is(err, session.ErrIncorrectPassword) {
@@ -57,7 +56,6 @@ func (a *App) signup(c *gin.Context) {
 		Error(c, http.StatusInternalServerError, err)
 		return
 	}
-	fmt.Println(req)
 
 	err = req.validate()
 	if err != nil {

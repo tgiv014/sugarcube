@@ -1,7 +1,8 @@
-package app
+package main
 
 import (
 	"bufio"
+	"context"
 	"errors"
 	"net/http"
 	"net/http/httputil"
@@ -10,10 +11,10 @@ import (
 	"time"
 
 	"github.com/charmbracelet/log"
-	"golang.org/x/net/context"
-	"golang.org/x/time/rate"
-
 	"github.com/gin-gonic/gin"
+	"github.com/tgiv014/sugarcube/app"
+	"github.com/tgiv014/sugarcube/internal/logger"
+	"golang.org/x/time/rate"
 )
 
 // reverseProxy provides middleware to proxy unhandled requests to vite
@@ -34,7 +35,7 @@ func reverseProxy(target string) gin.HandlerFunc {
 	}
 }
 
-func (a *App) runDev() error {
+func startVite() (error, func()) {
 	// Start vite's dev server
 	cmd := exec.Command("npm", "run", "dev", "--", "--clearScreen=false", "--host")
 
@@ -53,34 +54,12 @@ func (a *App) runDev() error {
 	}()
 
 	cmd.Dir = "web"
-	err = cmd.Start() // Not waiting for it to finish
-	if err != nil {
-		log.Fatal(err)
+	return cmd.Start(), func() {
+		cmd.Wait()
+		if err != nil {
+			log.Fatal(err)
+		}
 	}
-
-	err = waitForVite("http://localhost:5173")
-	if err != nil {
-		log.Fatal("timed out waiting for vite to start", "err", err)
-	}
-
-	// Start router on localhost:8080
-	r := gin.New()
-	r.Use(gin.Recovery())
-	r.Use(requestLogger)
-	r.Use(reverseProxy("http://localhost:5173"))
-	a.attachRoutes(r)
-
-	err = r.Run()
-	if err != nil {
-		log.Warn("gin server exited with error", "err", err)
-	}
-
-	err = cmd.Wait()
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	return nil
 }
 
 func waitForVite(host string) error {
@@ -112,4 +91,34 @@ func waitForVite(host string) error {
 	}
 
 	return errors.New("timed out waiting for vite to start")
+}
+
+func main() {
+	a := app.New(app.Config{
+		DBPath: "db.sqlite",
+	})
+
+	err, cleanup := startVite()
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer cleanup()
+
+	// Wait for vite to start serving requests
+	err = waitForVite("http://localhost:5173")
+	if err != nil {
+		log.Fatal("timed out waiting for vite to start", "err", err)
+	}
+
+	// Start router on localhost:8080
+	r := gin.New()
+	r.Use(gin.Recovery())
+	r.Use(logger.RequestLogger)
+	r.Use(reverseProxy("http://localhost:5173"))
+	a.AttachRoutes(r)
+
+	err = r.Run()
+	if err != nil {
+		log.Warn("gin server exited with error", "err", err)
+	}
 }

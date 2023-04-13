@@ -1,7 +1,6 @@
 package app
 
 import (
-	"context"
 	"os"
 
 	"github.com/charmbracelet/log"
@@ -26,16 +25,8 @@ type App struct {
 }
 
 type Config struct {
-	Environment Environment
-	DBPath      string
+	DBPath string
 }
-
-type Environment string
-
-var (
-	Development Environment = "dev"
-	Production  Environment = "prod"
-)
 
 func New(config Config) *App {
 	bus := events.NewBus()
@@ -69,20 +60,7 @@ func New(config Config) *App {
 	return a
 }
 
-func (a *App) Run(ctx context.Context) error {
-	// gin debug logs are pretty loud
-	gin.SetMode(gin.ReleaseMode)
-	// Start API
-	if a.Config.Environment == Development {
-		log.Info("Starting in dev mode")
-		return a.runDev()
-	}
-
-	log.Info("Starting")
-	return a.runProd()
-}
-
-func (a *App) attachRoutes(r gin.IRouter) {
+func (a *App) AttachRoutes(r gin.IRouter) {
 	api := r.Group("/api")
 	{
 		api.POST("/login", a.login)
@@ -91,6 +69,6 @@ func (a *App) attachRoutes(r gin.IRouter) {
 		api.GET("/settings", a.sessions.Authenticate, a.getSettings)
 		api.PATCH("/settings", a.sessions.Authenticate, a.updateSettings)
 		api.GET("/readings", a.sessions.Authenticate, a.getReadings)
-		api.GET("/bus", a.bus.Handler)
+		api.GET("/bus", a.sessions.Authenticate, a.bus.Handler)
 	}
 }

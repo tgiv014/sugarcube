@@ -88,7 +88,7 @@
 			{/if}
 		</div>
 	</div>
-	<div class="flex border-t border-stone-900">
+	<!-- <div class="flex border-t border-stone-900">
 		<p>Oh you just know you're getting widgets here for stats</p>
-	</div>
+	</div> -->
 </div>
