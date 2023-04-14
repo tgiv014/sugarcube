@@ -8,6 +8,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/tgiv014/sugarcube/events"
 	"github.com/tgiv014/sugarcube/glucose"
+	"github.com/tgiv014/sugarcube/internal/env"
 	"github.com/tgiv014/sugarcube/session"
 	"github.com/tgiv014/sugarcube/settings"
 	"gorm.io/driver/sqlite"
@@ -28,10 +29,13 @@ type Config struct {
 	DBPath string
 }
 
-func New(config Config) *App {
+func New() *App {
+	config := Config{
+		DBPath: env.Var("DB_PATH", "./db.sqlite"),
+	}
 	bus := events.NewBus()
 
-	log.Info("connecting to db")
+	log.Info("Connecting to DB", "path", config.DBPath)
 	db, err := gorm.Open(sqlite.Open(config.DBPath), &gorm.Config{
 		// Shhh
 		Logger: logger.New(log.New(os.Stdout), logger.Config{

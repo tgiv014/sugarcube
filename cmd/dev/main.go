@@ -94,9 +94,7 @@ func waitForVite(host string) error {
 }
 
 func main() {
-	a := app.New(app.Config{
-		DBPath: "db.sqlite",
-	})
+	a := app.New()
 
 	err, cleanup := startVite()
 	if err != nil {

@@ -7,4 +7,4 @@ dev:
 ## build: builds server with embedded frontend
 build:
 	cd web && npm i && npm run build
-	go build cmd/sugarcube/main.go
+	go build -o sugarcube cmd/sugarcube/main.go

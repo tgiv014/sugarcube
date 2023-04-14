@@ -12,9 +12,7 @@ import (
 )
 
 func main() {
-	a := app.New(app.Config{
-		DBPath: "db.sqlite",
-	})
+	a := app.New()
 
 	static, err := web.Static()
 	if err != nil {
