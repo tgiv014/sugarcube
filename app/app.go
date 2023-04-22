@@ -46,7 +46,7 @@ func New() *App {
 		log.Fatal(err)
 	}
 
-	settingsService := settings.NewService(db)
+	settingsService := settings.NewService(bus, db)
 	sessionService := session.NewService(db, settingsService)
 	glucoseService := glucose.NewService(bus, db, settingsService)
 
@@ -68,6 +68,7 @@ func (a *App) AttachRoutes(r gin.IRouter) {
 	api := r.Group("/api")
 	{
 		api.POST("/login", a.login)
+		api.POST("/logout", a.sessions.Authenticate, a.logout)
 		api.POST("/signup", a.signup)
 		api.GET("/status", a.status)
 		api.GET("/settings", a.sessions.Authenticate, a.getSettings)

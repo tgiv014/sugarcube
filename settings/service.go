@@ -4,22 +4,25 @@ import (
 	"errors"
 
 	"github.com/charmbracelet/log"
+	"github.com/tgiv014/sugarcube/events"
 
 	"gorm.io/gorm"
 )
 
 type Service struct {
-	db *gorm.DB
+	bus *events.Bus
+	db  *gorm.DB
 }
 
-func NewService(db *gorm.DB) *Service {
+func NewService(bus *events.Bus, db *gorm.DB) *Service {
 	err := db.AutoMigrate(&Settings{})
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	return &Service{
-		db: db,
+		bus: bus,
+		db:  db,
 	}
 }
 
@@ -42,5 +45,7 @@ func (s *Service) Save(settings *Settings) error {
 	if result.Error != nil {
 		return result.Error
 	}
+
+	s.bus.Emit(SettingsUpdatedEvent{})
 	return nil
 }

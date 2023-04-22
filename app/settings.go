@@ -1,6 +1,7 @@
 package app
 
 import (
+	"errors"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -22,6 +23,18 @@ type settingsUpdate struct {
 	DexcomPassword *string `json:"dexcomPassword"`
 }
 
+func (s settingsUpdate) validate() error {
+	if s.DexcomUsername != nil || s.DexcomPassword != nil {
+		if s.DexcomUsername == nil || s.DexcomPassword == nil {
+			return errors.New("both username and password must be specified if updating dexcom authentication")
+		}
+		if *s.DexcomUsername == "" || *s.DexcomPassword == "" {
+			return errors.New("both username and password must be specified if updating dexcom authentication")
+		}
+	}
+	return nil
+}
+
 func (s settingsUpdate) apply(settings *settings.Settings) {
 	if s.DexcomUsername != nil {
 		settings.DexcomUsername = *s.DexcomUsername
@@ -35,6 +48,12 @@ func (a *App) updateSettings(c *gin.Context) {
 	update := settingsUpdate{}
 
 	err := c.Bind(&update)
+	if err != nil {
+		Error(c, http.StatusBadRequest, err)
+		return
+	}
+
+	err = update.validate()
 	if err != nil {
 		Error(c, http.StatusBadRequest, err)
 		return

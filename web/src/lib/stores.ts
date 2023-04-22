@@ -34,6 +34,22 @@ export const login = async (loginRequest: any) => {
     await getStatus();
 }
 
+export const logout = async () => {
+    const response = await fetch('/api/logout', {
+        method: 'POST',
+        headers: {
+            "Content-Type": "application/json",
+        },
+    })
+
+    if (response.status != 200) {
+        const err = await response.json() as ErrorResponse
+        throw new Error(err.error)
+    }
+
+    await getStatus();
+}
+
 export const signup = async (password: string) => {
     const response = await fetch('/api/signup', {
         method: 'POST',
@@ -53,6 +69,24 @@ export const signup = async (password: string) => {
     await getStatus();
 }
 
-export const getReadings = async (start: Date, end: Date) => {
+export type SettingsUpdate = {
+    dexcomUsername: string
+    dexcomPassword: string
+}
 
+export const updateSettings = async (update: SettingsUpdate) => {
+    const response = await fetch('/api/settings', {
+        method: 'PATCH',
+        body: JSON.stringify(update),
+        headers: {
+            "Content-Type": "application/json",
+        },
+    })
+
+    if (response.status != 200) {
+        const err = await response.json() as ErrorResponse
+        throw new Error(err.error)
+    }
+
+    await getStatus();
 }

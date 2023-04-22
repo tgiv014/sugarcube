@@ -46,6 +46,17 @@ func (s *Service) glucoseFetcher() {
 			minutes:  60 * 12,
 			maxCount: 12 * 12,
 		}
+
+		updateEvents, close := s.bus.Subscribe("settingsUpdated")
+		defer close()
+
+		for range updateEvents {
+			log.Info("Fetching glucose readings because of a settings update")
+			s.fetchNow <- fetchParams{
+				minutes:  60 * 12,
+				maxCount: 12 * 12,
+			}
+		}
 	}()
 
 	for {

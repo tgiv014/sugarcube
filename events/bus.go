@@ -2,6 +2,8 @@ package events
 
 import (
 	"sync"
+
+	"github.com/charmbracelet/log"
 )
 
 type Bus struct {
@@ -60,6 +62,8 @@ func (b *Bus) Emit(event Event) error {
 			channel <- event
 		}
 	}
+
+	log.Infof("Event %s emitted to %d listeners", event.Topic(), totalSubscribers)
 
 	return nil
 }

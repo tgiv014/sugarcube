@@ -48,6 +48,11 @@ func (a *App) login(c *gin.Context) {
 	c.Status(http.StatusOK)
 }
 
+func (a *App) logout(c *gin.Context) {
+	c.SetCookie("token", "", 0, "", "", false, true)
+	c.Status(http.StatusOK)
+}
+
 func (a *App) signup(c *gin.Context) {
 	var req LoginRequest
 	err := c.Bind(&req)
