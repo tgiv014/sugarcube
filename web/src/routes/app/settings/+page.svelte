@@ -1,8 +1,7 @@
 <script lang="ts">
-	import { updateSettings, type SettingsUpdate } from '$lib/stores';
-
+	import { settings, updateSettings, type SettingsUpdate } from '$lib/stores';
 	let error = '';
-	let dexcomUsername = '';
+	let dexcomUsername = $settings.dexcomUsername;
 	let dexcomPassword = '';
 
 	function onSubmit() {
@@ -11,7 +10,7 @@
 			dexcomPassword
 		})
 			.then(() => {
-				console.log('stuff happened!');
+				dexcomPassword = '';
 			})
 			.catch((reason) => {
 				error = reason;
@@ -19,7 +18,7 @@
 	}
 
 	function resetForm() {
-		dexcomUsername = '';
+		dexcomUsername = $settings.dexcomUsername;
 		dexcomPassword = '';
 	}
 </script>

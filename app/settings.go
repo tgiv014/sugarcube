@@ -73,5 +73,5 @@ func (a *App) updateSettings(c *gin.Context) {
 		return
 	}
 
-	c.Status(http.StatusOK)
+	c.JSON(http.StatusOK, settings)
 }

@@ -1,8 +1,9 @@
 import { writable } from "svelte/store";
-import type { ErrorResponse, StatusResponse } from "./types";
+import type { ErrorResponse, Status, Settings } from "./types";
 
-export let status = writable<StatusResponse>(undefined)
+export let status = writable<Status>(undefined)
 
+// Status
 export const getStatus = async () => {
     const response = await fetch("/api/status")
 
@@ -10,12 +11,10 @@ export const getStatus = async () => {
         const err = await response.json() as ErrorResponse
         throw new Error(err.error)
     }
-    const obj = await response.json() as StatusResponse
+    const obj = await response.json() as Status
 
     status.set(obj)
 }
-
-getStatus(); // Get on load
 
 export const login = async (loginRequest: any) => {
     const response = await fetch('/api/login', {
@@ -34,6 +33,7 @@ export const login = async (loginRequest: any) => {
     await getStatus();
 }
 
+// Auth
 export const logout = async () => {
     const response = await fetch('/api/logout', {
         method: 'POST',
@@ -69,10 +69,25 @@ export const signup = async (password: string) => {
     await getStatus();
 }
 
-export type SettingsUpdate = {
-    dexcomUsername: string
-    dexcomPassword: string
+// Settings
+export let settings = writable<Settings>(undefined)
+
+
+export const getSettings = async () => {
+    const response = await fetch("/api/settings")
+
+    if (response.status != 200) {
+        const err = await response.json() as ErrorResponse
+        throw new Error(err.error)
+    }
+    const obj = await response.json() as Settings
+
+    settings.set(obj)
+
+    return obj
 }
+
+export type SettingsUpdate = Partial<Settings>
 
 export const updateSettings = async (update: SettingsUpdate) => {
     const response = await fetch('/api/settings', {
@@ -88,5 +103,14 @@ export const updateSettings = async (update: SettingsUpdate) => {
         throw new Error(err.error)
     }
 
+    const obj = await response.json() as Settings
+
+    settings.set(obj)
+
     await getStatus();
+
+    return obj
 }
+
+await getStatus();
+await getSettings();

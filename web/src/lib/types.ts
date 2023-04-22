@@ -1,4 +1,4 @@
-export type StatusResponse = {
+export type Status = {
     setupCompleted: boolean
     sessionValid: boolean
 }
@@ -23,4 +23,9 @@ export class GlucoseReading {
         this.timestamp = new Date(res.ID * 1000)
         this.value = res.Value
     }
+}
+
+export type Settings = {
+    dexcomUsername: string
+    dexcomPassword?: string
 }
