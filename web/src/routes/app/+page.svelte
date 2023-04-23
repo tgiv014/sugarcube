@@ -68,12 +68,12 @@
 	});
 </script>
 
-<div class="flex-col">
-	<div class="flex">
-		<div class="my-2 h-full w-full">
+<div class="">
+	<div class="flex flex-col md:flex-row">
+		<div class="my-2 md:flex-grow">
 			<GlucoseGraph data={readings} />
 		</div>
-		<div class="min-w-fit flex-grow border-l border-stone-900 px-4 py-4 font-mono">
+		<div class="min-w-fit border-l border-stone-900 px-4 py-4 font-mono">
 			{#if latestReading}
 				<h1 class="text-8xl font-bold">{latestReading.value}</h1>
 				{#if delta}

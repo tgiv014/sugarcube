@@ -14,6 +14,7 @@ export const getStatus = async () => {
     const obj = await response.json() as Status
 
     status.set(obj)
+    return obj
 }
 
 export const login = async (loginRequest: any) => {
@@ -112,5 +113,8 @@ export const updateSettings = async (update: SettingsUpdate) => {
     return obj
 }
 
-await getStatus();
-await getSettings();
+getStatus().then(async (status) => {
+    if (status.sessionValid) {
+        await getSettings();
+    }
+});
