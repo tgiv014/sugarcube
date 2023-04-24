@@ -2,7 +2,7 @@
 	import Footer from './footer.svelte';
 	import Header from './header.svelte';
 
-	import { status } from '../../lib/stores';
+	import { status } from '../../lib/status';
 	import { goto } from '$app/navigation';
 
 	$: if ($status) {
@@ -14,7 +14,7 @@
 	}
 </script>
 
-<div class="flex flex-col min-h-screen w-full">
+<div class="flex min-h-screen w-full flex-col">
 	<!-- todo: hide header/nav -->
 	<Header />
 	<div class="flex-1">

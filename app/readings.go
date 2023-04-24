@@ -8,22 +8,33 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-type getReadingsRequest struct {
-	Start *int64 `json:"start,omitempty"`
-	End   *int64 `json:"end,omitempty"`
-}
-
 func (a *App) getReadings(c *gin.Context) {
-	var request getReadingsRequest
-	err := c.Bind(&request)
-	if err != nil {
-		log.Warn("failed to unmarshal request", "err", err)
-		Error(c, http.StatusInternalServerError, err)
-		return
+	startQ := c.Query("start")
+	endQ := c.Query("end")
+
+	// Defaults
+	end := time.Now().UTC()
+	start := end.Add(-time.Hour)
+
+	if startQ != "" {
+		parsedStartQuery, err := time.Parse(time.RFC3339, startQ)
+		if err != nil {
+			Error(c, http.StatusBadRequest, err)
+			return
+		}
+		start = parsedStartQuery
+	}
+	if endQ != "" {
+		parsedEndQuery, err := time.Parse(time.RFC3339, endQ)
+		if err != nil {
+			Error(c, http.StatusBadRequest, err)
+			return
+		}
+		end = parsedEndQuery
 	}
 	readings, err := a.glucose.GetReadings(
-		time.Now().Add(-time.Hour*4),
-		time.Now(),
+		start,
+		end,
 	)
 	if err != nil {
 		log.Warn("failed to get readings", "err", err)

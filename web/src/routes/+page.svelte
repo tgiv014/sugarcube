@@ -2,7 +2,8 @@
 	import { fade } from 'svelte/transition';
 	import { goto } from '$app/navigation';
 	import Sugarcube from '../components/Sugarcube.svelte';
-	import { login, status } from '../lib/stores';
+	import { status } from '$lib/status';
+	import { login } from '$lib/auth';
 
 	let error = '';
 
