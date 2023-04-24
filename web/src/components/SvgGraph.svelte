@@ -2,21 +2,24 @@
 	import { scaleLinear, scaleTime } from 'd3-scale';
 	import { line, curveBasis, curveCatmullRom } from 'd3-shape';
 	import type { GlucoseReading } from '$lib/glucose';
+	import { utcHour } from 'd3';
 
 	// Bindings
 	export let w: number = 0;
 	export let h: number = 0;
-	export let tEnd: Date;
-	export let tStart: Date;
+	export let endMillis: number;
+	export let startMillis: number;
+	export let glucoseMin: number;
+	export let glucoseMax: number;
 	export let data: GlucoseReading[] | undefined;
 
 	$: yMax = h - 32;
 	$: xMax = w - 64;
 
 	// D3 Scale Magic
-	$: extents = [tStart, tEnd];
+	$: extents = [startMillis, endMillis];
 	$: xScale = scaleTime().domain(extents).range([0, xMax]);
-	$: yScale = scaleLinear().domain([40, 200]).range([yMax, 0]);
+	$: yScale = scaleLinear().domain([glucoseMin, glucoseMax]).range([yMax, 0]);
 	$: pathLine = line<GlucoseReading>()
 		.x((d) => xScale(d.timestamp))
 		.y((d) => yScale(d.value))
@@ -25,6 +28,38 @@
 
 <svg width={w} height={h}>
 	<g>
+		<!-- transform="translate({xScale( -->
+		{#each xScale.ticks(6) as tick, i (tick)}
+			<g class="tick" transform="translate({xScale(tick)},0)">
+				<line class="grid-line" y1={yMax} y2="0" x1="0" x2="0" />
+				<text x={0} y={h - 8} text-anchor="middle">
+					{tick.toLocaleTimeString('en', { timeStyle: 'short' })}
+					<!-- {i} -->
+				</text>
+			</g>
+		{/each}
+
+		<!-- unlabelled vertical lines on each hour -->
+		{#each xScale.ticks(utcHour) as tick, i (tick)}
+			<g class="hourtick" transform="translate({xScale(tick)},0)">
+				<line class="hour-line" y1={yMax} y2="0" x1="0" x2="0" />
+			</g>
+		{/each}
+
+		<g>
+			<clipPath id="cut-off-bottom">
+				<rect x="0" y="0" width={xMax} height={yMax} />
+			</clipPath>
+			<g clip-path="url(#cut-off-bottom)">
+				{#if data}
+					<path d={pathLine(data)} />
+					{#each data as d}
+						<circle cx={xScale(d.timestamp)} cy={yScale(d.value)} r="4px" />
+					{/each}
+				{/if}
+			</g>
+		</g>
+		<!-- Hashed low range -->
 		<g>
 			<pattern
 				id="lowHatch"
@@ -50,6 +85,7 @@
 			/>
 			<text x={xMax + 16} y={yScale(60)}> 60 </text>
 		</g>
+		<!-- Hashed high range -->
 		<g>
 			<pattern
 				id="highHatch"
@@ -69,29 +105,11 @@
 			<rect x="0" y="0" width={xMax} height={yScale(180)} fill="url(#highHatch)" />
 			<text x={xMax + 16} y={yScale(180)}> 180 </text>
 		</g>
+		<!-- Goal line -->
 		<g>
 			<line y1={yScale(100)} y2={yScale(100)} x1="0" x2={xMax} class="goal-line" />
 			<text x={xMax + 16} y={yScale(100)}> 100 </text>
 		</g>
-		<text x={xMax + 16} y={yScale(250)}> 250 </text>
-
-		<!-- transform="translate({xScale( -->
-		{#each xScale.ticks(6) as tick, i (tick)}
-			<g class="tick" transform="translate({xScale(tick)},0)">
-				<line class="grid-line" y1={yMax} y2="0" x1="0" x2="0" />
-				<text x={0} y={h - 8} text-anchor="middle">
-					{tick.toLocaleTimeString('en', { timeStyle: 'short' })}
-					<!-- {i} -->
-				</text>
-			</g>
-		{/each}
-
-		{#if data}
-			<path d={pathLine(data)} />
-			{#each data as d}
-				<circle cx={xScale(d.timestamp)} cy={yScale(d.value)} r="4px" />
-			{/each}
-		{/if}
 	</g>
 </svg>
 
@@ -119,6 +137,11 @@
 
 	.grid-line {
 		stroke: theme('colors.stone.400');
+		stroke-width: 1px;
+		stroke-dasharray: 4;
+	}
+	.hour-line {
+		stroke: theme('colors.stone.500');
 		stroke-width: 1px;
 		stroke-dasharray: 4;
 	}
@@ -154,6 +177,9 @@
 
 		.grid-line {
 			stroke: theme('colors.stone.600');
+		}
+		.hour-line {
+			stroke: theme('colors.stone.400');
 		}
 		.goal-line {
 			stroke: theme('colors.stone.500');

@@ -8,8 +8,8 @@
 	let timestampstring: string = '';
 	let delta: number | undefined = undefined;
 
+	// Computed values
 	$: if ($liveReadings) {
-		console.log($liveReadings);
 		if ($liveReadings.length >= 1) {
 			latestReading = $liveReadings[$liveReadings.length - 1];
 		}
@@ -41,15 +41,17 @@
 	});
 </script>
 
-<div class="min-w-fit border-l border-stone-900 px-4 py-4 font-mono">
+<div class="flex min-w-fit items-center border-l border-stone-900 px-4 py-4 font-mono md:flex-col">
 	{#if latestReading}
 		<h1 class="text-8xl font-bold">{latestReading.value}</h1>
-		{#if delta !== undefined}
-			<p class="text-right text-2xl">{delta > 0 ? '+' : ''}{delta} / 5min</p>
-		{/if}
-		<p class="text-right text-2xl italic">
-			{timestampstring}
-		</p>
+		<div class="flex flex-grow flex-col">
+			{#if delta !== undefined}
+				<p class="text-right text-2xl">{delta > 0 ? '+' : ''}{delta} / 5min</p>
+			{/if}
+			<p class="text-right text-2xl italic">
+				{timestampstring}
+			</p>
+		</div>
 	{:else}
 		<h1 class="text-8xl font-bold">---</h1>
 		<p class="italic">No recent readings...</p>

@@ -10,31 +10,53 @@
 	let follow = true;
 
 	$: xMax = w - 64;
-
-	const baseRange = 3600 * 3;
+	const baseRangeMillis = 3600 * 3 * 1000; // Default range is 3 hours
 
 	// Data range
-	let tEnd = new Date();
+	const glucoseMin = tweened(40, { duration: 100, easing: cubicOut });
+	const glucoseMax = tweened(250, { duration: 100, easing: cubicOut });
+	const endMillis = tweened(new Date().getTime(), { duration: 200, easing: cubicOut });
 	const scale = tweened(1, { duration: 100, easing: cubicOut });
-	$: rangeSeconds = baseRange * $scale;
+	$: rangeMillis = baseRangeMillis * $scale;
+	$: startMillis = $endMillis - rangeMillis;
 
-	$: tStart = new Date(tEnd.getTime() - rangeSeconds * 1000);
-
-	// When toggling on "follow", snap to now
+	// Snap to now when initially enabling follow or when liveReadings are updated
 	$: if ($liveReadings && follow) {
-		tEnd = new Date();
+		endMillis.set(new Date().getTime());
 	}
 
 	let timer: NodeJS.Timeout;
-	$: if (tStart && tEnd) {
+	$: if (startMillis && endMillis) {
 		clearTimeout(timer);
 		timer = setTimeout(() => {
-			console.log(tStart, tEnd);
-			glucoseReadings.get(
-				new Date(tStart.getTime() - rangeSeconds * 1000),
-				new Date(tEnd.getTime() + rangeSeconds * 1000)
-			);
+			glucoseReadings.get(new Date(startMillis - rangeMillis), new Date($endMillis + rangeMillis));
 		}, 100);
+	}
+
+	$: if ($glucoseReadings && $glucoseReadings.length > 0) {
+		// Use data min and max
+		glucoseMin.set(
+			Math.min(
+				...$glucoseReadings.map((d) => {
+					const t = d.timestamp.getTime();
+					if (t >= $endMillis || t <= startMillis) {
+						return 40;
+					}
+					return d.value - 30;
+				})
+			)
+		);
+		glucoseMax.set(
+			Math.max(
+				...$glucoseReadings.map((d) => {
+					const t = d.timestamp.getTime();
+					if (t >= $endMillis || t <= startMillis) {
+						return 200;
+					}
+					return d.value + 30;
+				})
+			)
+		);
 	}
 
 	// Drag behavior!
@@ -45,7 +67,7 @@
 	const gestureHandler = {
 		mousedown: (e: MouseEvent) => {
 			dragX = e.x;
-			dragtEnd = tEnd.getTime();
+			dragtEnd = $endMillis;
 			dragNow = new Date().getTime();
 			dragging = true;
 		},
@@ -54,14 +76,14 @@
 				return;
 			}
 			let delta = e.x - dragX;
-			let tEndNumber = dragtEnd - 1000 * delta * (rangeSeconds / xMax);
+			let tEndNumber = dragtEnd - delta * (rangeMillis / xMax);
 			if (tEndNumber > dragNow) {
 				tEndNumber = dragNow;
 				follow = true;
 			} else {
 				follow = false;
 			}
-			tEnd = new Date(tEndNumber);
+			endMillis.set(new Date(tEndNumber).getTime());
 		},
 		mouseup: (e: MouseEvent) => {
 			dragging = false;
@@ -70,19 +92,25 @@
 			if (e.deltaY != 0) {
 				let delta = e.deltaY / 200;
 				let newScale = $scale * Math.pow(2, delta);
-				// scale = newScale;
+				if (newScale > 5) {
+					newScale = 5;
+				}
+				if (newScale < 0.2) {
+					newScale = 0.2;
+				}
+
 				scale.set(newScale);
 			}
 			if (e.deltaX != 0) {
 				let delta = e.deltaX;
-				let tEndNumber = tEnd.getTime() + 1000 * delta * (rangeSeconds / xMax);
+				let tEndNumber = $endMillis + delta * (rangeMillis / xMax);
 				if (tEndNumber > new Date().getTime()) {
 					tEndNumber = new Date().getTime();
 					follow = true;
 				} else {
 					follow = false;
 				}
-				tEnd = new Date(tEndNumber);
+				endMillis.set(new Date(tEndNumber).getTime());
 			}
 		}
 	};
@@ -98,7 +126,15 @@
 		on:pointerup={gestureHandler.mouseup}
 		on:wheel|preventDefault={gestureHandler.wheel}
 	>
-		<SvgGraph {w} {h} {tStart} {tEnd} data={$glucoseReadings} />
+		<SvgGraph
+			{w}
+			{h}
+			{startMillis}
+			endMillis={$endMillis}
+			glucoseMin={$glucoseMin}
+			glucoseMax={$glucoseMax}
+			data={$glucoseReadings}
+		/>
 	</div>
 	<div class="px-4">
 		<label class="relative inline-flex cursor-pointer items-center">

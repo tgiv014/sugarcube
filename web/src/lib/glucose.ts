@@ -22,11 +22,9 @@ export class GlucoseReading {
 export const fetchReadings = async (start?: Date, end?: Date) => {
 	const params = new URLSearchParams();
 	if (start) {
-		console.log(start.toISOString());
 		params.append('start', start.toISOString());
 	}
 	if (end) {
-		console.log(end.toISOString());
 		params.append('end', end.toISOString());
 	}
 	const response = await fetch('/api/readings?' + params);
@@ -74,9 +72,7 @@ function createLiveReadings() {
 	};
 	const events = new EventSource('/api/bus');
 	events.addEventListener('message', async (ev) => {
-		console.log(ev);
 		const parsedEvent = JSON.parse(ev.data) as baseEvent;
-		console.log(parsedEvent);
 		if (parsedEvent.Topic == 'newReading') {
 			readings.get();
 		}
