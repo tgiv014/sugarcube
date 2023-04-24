@@ -2,7 +2,7 @@
 	import Sugarcube from '../../components/Sugarcube.svelte';
 	import FaSignOutAlt from 'svelte-icons/fa/FaSignOutAlt.svelte';
 	import MdSettings from 'svelte-icons/md/MdSettings.svelte';
-	import { logout } from '../../lib/stores';
+	import { logout } from '$lib/auth';
 </script>
 
 <div
@@ -21,7 +21,9 @@
 	</a>
 	<button
 		on:click={() => {
-			logout();
+			logout().then(() => {
+				console.log('logout');
+			});
 		}}
 		class="w-6"
 	>

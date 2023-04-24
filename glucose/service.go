@@ -168,7 +168,7 @@ type GetReadingsParams struct {
 
 func (s *Service) GetReadings(start, end time.Time) ([]GlucoseReading, error) {
 	var readings []GlucoseReading
-	result := s.db.Limit(1000).Where("timestamp >= ? AND timestamp < ?", start, end).Find(&readings)
+	result := s.db.Limit(1000).Where("timestamp >= ? AND timestamp < ?", start.UTC(), end.UTC()).Find(&readings)
 	if result.Error != nil {
 		return nil, result.Error
 	}

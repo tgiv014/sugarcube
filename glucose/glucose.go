@@ -30,7 +30,7 @@ func GlucoseReadingFromDexcomShare(ds dexcomshare.GlucoseEntry) (*GlucoseReading
 		return nil, err
 	}
 	reading := &GlucoseReading{
-		Timestamp: time.UnixMilli(unixtimeMillis),
+		Timestamp: time.UnixMilli(unixtimeMillis).UTC(),
 		Value:     ds.Value,
 	}
 

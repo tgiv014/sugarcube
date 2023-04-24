@@ -1,4 +1,4 @@
-import type { GlucoseReadingResponse } from "./types";
+import type { GlucoseReadingResponse } from "./glucose";
 
 const timeFormat = new Intl.RelativeTimeFormat('en', { style: 'short' });
 

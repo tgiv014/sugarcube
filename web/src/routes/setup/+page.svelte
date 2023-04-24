@@ -1,7 +1,8 @@
 <script lang="ts">
 	import { fade } from 'svelte/transition';
 	import { goto } from '$app/navigation';
-	import { signup, status } from '$lib/stores';
+	import { status } from '$lib/status';
+	import { signup } from '$lib/auth';
 	import Sugarcube from '../../components/Sugarcube.svelte';
 	let error = '';
 

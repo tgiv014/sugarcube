@@ -1,41 +1,62 @@
 <script lang="ts">
-	import { scaleLinear, scaleTime } from 'd3-scale';
-	import { line, curveBasis, curveCatmullRom } from 'd3-shape';
-	import type { GlucoseReading } from '../lib/types';
+	import { glucoseReadings, liveReadings } from '$lib/glucose';
 	import { tweened } from 'svelte/motion';
 	import { cubicOut } from 'svelte/easing';
-
-	// Inputs
-	export let data: GlucoseReading[];
+	import SvgGraph from './SvgGraph.svelte';
 
 	// Bindings
 	let w: number = 0;
 	let h: number = 0;
 	let follow = true;
 
-	$: yMax = h - 32;
 	$: xMax = w - 64;
-
-	const baseRange = 3600 * 3;
+	const baseRangeMillis = 3600 * 3 * 1000; // Default range is 3 hours
 
 	// Data range
-	let tEnd = new Date();
-	const scale = tweened(1, { duration: 400, easing: cubicOut });
-	$: rangeSeconds = baseRange * $scale;
-	$: tStart = new Date(tEnd.getTime() - rangeSeconds * 1000);
+	const glucoseMin = tweened(40, { duration: 100, easing: cubicOut });
+	const glucoseMax = tweened(250, { duration: 100, easing: cubicOut });
+	const endMillis = tweened(new Date().getTime(), { duration: 200, easing: cubicOut });
+	const scale = tweened(1, { duration: 100, easing: cubicOut });
+	$: rangeMillis = baseRangeMillis * $scale;
+	$: startMillis = $endMillis - rangeMillis;
 
-	// D3 Scale Magic
-	$: extents = [tStart, tEnd];
-	$: xScale = scaleTime().domain(extents).range([0, xMax]);
-	$: yScale = scaleLinear().domain([40, 200]).range([yMax, 0]);
-	$: pathLine = line<GlucoseReading>()
-		.x((d) => xScale(d.timestamp))
-		.y((d) => yScale(d.value))
-		.curve(curveCatmullRom);
+	// Snap to now when initially enabling follow or when liveReadings are updated
+	$: if ($liveReadings && follow) {
+		endMillis.set(new Date().getTime());
+	}
 
-	// When toggling on "follow", snap to now
-	$: if (data && follow) {
-		tEnd = new Date();
+	let timer: NodeJS.Timeout;
+	$: if (startMillis && endMillis) {
+		clearTimeout(timer);
+		timer = setTimeout(() => {
+			glucoseReadings.get(new Date(startMillis - rangeMillis), new Date($endMillis + rangeMillis));
+		}, 100);
+	}
+
+	$: if ($glucoseReadings && $glucoseReadings.length > 0) {
+		// Use data min and max
+		glucoseMin.set(
+			Math.min(
+				...$glucoseReadings.map((d) => {
+					const t = d.timestamp.getTime();
+					if (t >= $endMillis || t <= startMillis) {
+						return 40;
+					}
+					return d.value - 30;
+				})
+			)
+		);
+		glucoseMax.set(
+			Math.max(
+				...$glucoseReadings.map((d) => {
+					const t = d.timestamp.getTime();
+					if (t >= $endMillis || t <= startMillis) {
+						return 200;
+					}
+					return d.value + 30;
+				})
+			)
+		);
 	}
 
 	// Drag behavior!
@@ -46,7 +67,7 @@
 	const gestureHandler = {
 		mousedown: (e: MouseEvent) => {
 			dragX = e.x;
-			dragtEnd = tEnd.getTime();
+			dragtEnd = $endMillis;
 			dragNow = new Date().getTime();
 			dragging = true;
 		},
@@ -55,26 +76,42 @@
 				return;
 			}
 			let delta = e.x - dragX;
-			let tEndNumber = dragtEnd - 1000 * delta * (rangeSeconds / xMax);
+			let tEndNumber = dragtEnd - delta * (rangeMillis / xMax);
 			if (tEndNumber > dragNow) {
 				tEndNumber = dragNow;
 				follow = true;
 			} else {
 				follow = false;
 			}
-			tEnd = new Date(tEndNumber);
+			endMillis.set(new Date(tEndNumber).getTime());
 		},
 		mouseup: (e: MouseEvent) => {
 			dragging = false;
 		},
 		wheel: (e: WheelEvent) => {
-			if (e.deltaY == 0) {
-				return;
+			if (e.deltaY != 0) {
+				let delta = e.deltaY / 200;
+				let newScale = $scale * Math.pow(2, delta);
+				if (newScale > 5) {
+					newScale = 5;
+				}
+				if (newScale < 0.2) {
+					newScale = 0.2;
+				}
+
+				scale.set(newScale);
 			}
-			let delta = e.deltaY / 200;
-			let newScale = $scale * Math.pow(2, delta);
-			// scale = newScale;
-			scale.set(newScale);
+			if (e.deltaX != 0) {
+				let delta = e.deltaX;
+				let tEndNumber = $endMillis + delta * (rangeMillis / xMax);
+				if (tEndNumber > new Date().getTime()) {
+					tEndNumber = new Date().getTime();
+					follow = true;
+				} else {
+					follow = false;
+				}
+				endMillis.set(new Date(tEndNumber).getTime());
+			}
 		}
 	};
 </script>
@@ -87,77 +124,17 @@
 		on:pointerdown|preventDefault={gestureHandler.mousedown}
 		on:pointermove={gestureHandler.mousemove}
 		on:pointerup={gestureHandler.mouseup}
-		on:wheel={gestureHandler.wheel}
+		on:wheel|preventDefault={gestureHandler.wheel}
 	>
-		<svg width={w} height={h}>
-			<g>
-				<g>
-					<pattern
-						id="lowHatch"
-						patternUnits="userSpaceOnUse"
-						width="4"
-						height="4"
-						patternTransform="scale(4 4)"
-					>
-						<path
-							d="M-1,1 l2,-2
-						 M0,4 l4,-4
-						 M3,5 l2,-2"
-							class="low-hash"
-						/>
-					</pattern>
-					<line y1={yScale(60)} y2={yScale(60)} x1="0" x2={xMax} class="low-line" />
-					<rect
-						x="0"
-						y={yScale(60)}
-						width={xMax}
-						height={yScale(40) - yScale(60)}
-						fill="url(#lowHatch)"
-					/>
-					<text x={xMax + 16} y={yScale(60)}> 60 </text>
-				</g>
-				<g>
-					<pattern
-						id="highHatch"
-						patternUnits="userSpaceOnUse"
-						width="4"
-						height="4"
-						patternTransform="scale(4 4)"
-					>
-						<path
-							d="M-1,1 l2,-2
-					 M0,4 l4,-4
-					 M3,5 l2,-2"
-							class="high-hash"
-						/>
-					</pattern>
-					<line y1={yScale(180)} y2={yScale(180)} x1="0" x2={xMax} class="high-line" />
-					<rect x="0" y="0" width={xMax} height={yScale(180)} fill="url(#highHatch)" />
-					<text x={xMax + 16} y={yScale(180)}> 180 </text>
-				</g>
-				<g>
-					<line y1={yScale(100)} y2={yScale(100)} x1="0" x2={xMax} class="goal-line" />
-					<text x={xMax + 16} y={yScale(100)}> 100 </text>
-				</g>
-				<text x={xMax + 16} y={yScale(250)}> 250 </text>
-
-				<!-- transform="translate({xScale( -->
-				{#each xScale.ticks(6) as tick, i (tick)}
-					<g class="tick" transform="translate({xScale(tick)},0)">
-						<line class="grid-line" y1={yMax} y2="0" x1="0" x2="0" />
-						<text x={0} y={h - 8} text-anchor="middle">
-							{tick.toLocaleTimeString('en', { timeStyle: 'short' })}
-							<!-- {i} -->
-						</text>
-					</g>
-				{/each}
-
-				<path d={pathLine(data)} />
-				{#each data as d}
-					<circle cx={xScale(d.timestamp)} cy={yScale(d.value)} r="4px" />
-				{/each}
-			</g>
-		</svg>
+		<SvgGraph
+			{w}
+			{h}
+			{startMillis}
+			endMillis={$endMillis}
+			glucoseMin={$glucoseMin}
+			glucoseMax={$glucoseMax}
+			data={$glucoseReadings}
+		/>
 	</div>
 	<div class="px-4">
 		<label class="relative inline-flex cursor-pointer items-center">
@@ -176,85 +153,6 @@
 	.svg-container {
 		overflow: auto;
 		position: relative;
-		touch-action: pan-x pan-y;
-	}
-	svg {
-		position: absolute;
-		top: 0;
-		left: 0;
-		overflow: auto;
-	}
-	path {
-		stroke: theme('colors.stone.400');
-		stroke-width: 4px;
-		fill: none;
-		stroke-linecap: round;
-	}
-	circle {
-		stroke: theme('colors.stone.900');
-		stroke-width: 2px;
-		fill: white;
-	}
-	text {
-		fill: theme('colors.stone.900');
-	}
-
-	.grid-line {
-		stroke: theme('colors.stone.400');
-		stroke-width: 1px;
-		stroke-dasharray: 4;
-	}
-	.goal-line {
-		stroke: theme('colors.stone.400');
-		stroke-width: 1px;
-	}
-	.low-line {
-		fill: none;
-		stroke: theme('colors.red.200');
-		stroke-width: 2px;
-	}
-	.low-hash {
-		fill: none;
-		stroke: theme('colors.red.200');
-		stroke-width: 0.5px;
-	}
-	.high-line {
-		fill: none;
-		stroke: theme('colors.amber.200');
-		stroke-width: 2px;
-	}
-	.high-hash {
-		fill: none;
-		stroke: theme('colors.amber.200');
-		stroke-width: 0.5px;
-	}
-
-	@media (prefers-color-scheme: dark) {
-		text {
-			fill: theme('colors.stone.100');
-		}
-
-		.grid-line {
-			stroke: theme('colors.stone.600');
-		}
-		.goal-line {
-			stroke: theme('colors.stone.500');
-		}
-		.low-line {
-			fill: none;
-			stroke: theme('colors.red.900');
-		}
-		.low-hash {
-			fill: none;
-			stroke: theme('colors.red.900');
-		}
-		.high-line {
-			fill: none;
-			stroke: theme('colors.amber.900');
-		}
-		.high-hash {
-			fill: none;
-			stroke: theme('colors.amber.900');
-		}
+		touch-action: none;
 	}
 </style>

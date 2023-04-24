@@ -1,14 +1,15 @@
 <script lang="ts">
-	import { settings, updateSettings, type SettingsUpdate } from '$lib/stores';
+	import { settings } from '$lib/settings';
 	let error = '';
 	let dexcomUsername = $settings.dexcomUsername;
 	let dexcomPassword = '';
 
 	function onSubmit() {
-		updateSettings({
-			dexcomUsername,
-			dexcomPassword
-		})
+		settings
+			.update({
+				dexcomUsername,
+				dexcomPassword
+			})
 			.then(() => {
 				dexcomPassword = '';
 			})
