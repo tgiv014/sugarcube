@@ -96,11 +96,6 @@
 </svg>
 
 <style>
-	.svg-container {
-		overflow: auto;
-		position: relative;
-		touch-action: pan-x pan-y;
-	}
 	svg {
 		position: absolute;
 		top: 0;

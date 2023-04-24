@@ -15,7 +15,7 @@
 
 	// Data range
 	let tEnd = new Date();
-	const scale = tweened(1, { duration: 400, easing: cubicOut });
+	const scale = tweened(1, { duration: 100, easing: cubicOut });
 	$: rangeSeconds = baseRange * $scale;
 
 	$: tStart = new Date(tEnd.getTime() - rangeSeconds * 1000);
@@ -24,6 +24,7 @@
 	$: if ($liveReadings && follow) {
 		tEnd = new Date();
 	}
+
 	let timer: NodeJS.Timeout;
 	$: if (tStart && tEnd) {
 		clearTimeout(timer);
@@ -33,7 +34,7 @@
 				new Date(tStart.getTime() - rangeSeconds * 1000),
 				new Date(tEnd.getTime() + rangeSeconds * 1000)
 			);
-		}, 500);
+		}, 100);
 	}
 
 	// Drag behavior!
@@ -66,13 +67,23 @@
 			dragging = false;
 		},
 		wheel: (e: WheelEvent) => {
-			if (e.deltaY == 0) {
-				return;
+			if (e.deltaY != 0) {
+				let delta = e.deltaY / 200;
+				let newScale = $scale * Math.pow(2, delta);
+				// scale = newScale;
+				scale.set(newScale);
 			}
-			let delta = e.deltaY / 200;
-			let newScale = $scale * Math.pow(2, delta);
-			// scale = newScale;
-			scale.set(newScale);
+			if (e.deltaX != 0) {
+				let delta = e.deltaX;
+				let tEndNumber = tEnd.getTime() + 1000 * delta * (rangeSeconds / xMax);
+				if (tEndNumber > new Date().getTime()) {
+					tEndNumber = new Date().getTime();
+					follow = true;
+				} else {
+					follow = false;
+				}
+				tEnd = new Date(tEndNumber);
+			}
 		}
 	};
 </script>
@@ -85,7 +96,7 @@
 		on:pointerdown|preventDefault={gestureHandler.mousedown}
 		on:pointermove={gestureHandler.mousemove}
 		on:pointerup={gestureHandler.mouseup}
-		on:wheel={gestureHandler.wheel}
+		on:wheel|preventDefault={gestureHandler.wheel}
 	>
 		<SvgGraph {w} {h} {tStart} {tEnd} data={$glucoseReadings} />
 	</div>
@@ -101,3 +112,11 @@
 		</label>
 	</div>
 </div>
+
+<style>
+	.svg-container {
+		overflow: auto;
+		position: relative;
+		touch-action: none;
+	}
+</style>
